@@ -1,35 +1,61 @@
 # %% [markdown]
 # ### Teoría del problema
-# Considerar el conjunto de misioneros, caníbales y bote como: <br>
-# [0,0,0] <-> [3,3,1]
+# Se requiere almacenar todos los nodos posibles, además debe haber una forma en la que se pueda obtener los vecinos del nodo actual. Se podría tener una lista que almacene una serie de tuplas que contienen el Punto A, Punto B y el costo (distancia) para cada uno de los nodos (ciudades) y hacer un chequeo en la función que genera soluciones.
 # 
-# El segundo dígito, que representa a los caníbales no debe ser mayor que el primer dígito<br>
-# que representa a los misioneros. El tercer dígito representa el lado que se encuentra el bote.
+# [ <br>
+# (Arad, Arad, 0) <-- Se usaría como nodo inicial <br>
+# (Arad, Zerind, 75) <br>
+# (Arad, Sibiu, 140) <br>
+# (Arad, Timisoara, 118) <br>
+# ] <br>
 # 
-# Solamente 2 unidades pueden moverse al otro lado y sólamente si está el bote en ese lado. <br>
-# Por lo cual, a M y C se le puede restar de 0 hasta 2. <br>
-# De igual forma, en cada movimiento a B se le debe restar 1.<br>
-# 
-# [M,C,B]<br>
-# 
-# Por cada resta que se haga en un lado, en el otro lado debe hacerse lo inverso, una suma. <br>
-# En perspectiva, la resta sólamente puede hacerse en el lado donde se encuentra el bote.
-# 
+# La distancia no sería relevante para los primeros 4 algoritmos, si no hasta que se llegue a usar en los que requieren heurística (Voraz, AEstrella, etc). Cada ciudad debe tener un nodo que se conecte consigo mismo como en el nodo inicial, pero el algoritmo debe evitar estos nodos a menos que sea el nodo destino (meta), esto es para casos en que se requiera cambiar el inicio y la meta.
 
-# %% [markdown]
-# Ejemplo de camino exitoso: <br>
-# [0,0,0] <-> [3,3,1] <-- Inicio<br>
-# [1,1,1] <-> [2,2,0] <br>
-# [0,1,0] <-> [3,2,1] <br>
-# [0,3,1] <-> [3,0,0] <br>
-# [0,2,0] <-> [3,1,1] <br>
-# [2,2,1] <-> [1,1,0] <br>
-# [1,1,0] <-> [2,2,1] <br>
-# [3,1,1] <-> [0,2,0] <br>
-# [3,0,0] <-> [0,3,1] <br>
-# [3,2,1] <-> [0,1,0] <br>
-# [3,1,0] <-> [0,2,1] <br>
-# [3,3,1] <-> [0,0,0] <-- Meta
+# %%
+ciudades = [
+    ("Arad","Arad",0),
+    ("Arad","Zerind",75),
+    ("Arad","Sibiu",140),
+    ("Arad","Timisoara",118),
+    ("Zerind","Zerind",0),
+    ("Zerind","Oradea",71),
+    ("Oradea","Oradea",0),
+    ("Oradea","Sibiu",151),
+    ("Timisoara","Timisoara",0),
+    ("Timisoara","Lugoj",111),
+    ("Lugoj","Lugoj",0),
+    ("Lugoj","Mehadia",70),
+    ("Mehadia","Mehadia",0),
+    ("Mehadia","Drobeta",75),
+    ("Drobeta","Drobeta",0),
+    ("Drobeta","Craiova",120),
+    ("Sibiu","Sibiu",0),
+    ("Sibiu","Fagaras",99),
+    ("Sibiu","Rimnicu Vilcea",80),
+    ("Rimnicu Vilcea","Rimnicu Vilcea",0),
+    ("Rimnicu Vilcea","Pitesti",97),
+    ("Rimnicu Vilcea","Craiova",146),
+    ("Craiova","Craiova",0),
+    ("Craiova","Pitesti",138),
+    ("Pitesti","Bucharest",101),
+    ("Bucharest","Bucharest",0),
+    ("Fagaras","Fagaras",0),
+    ("Fagaras","Bucharest",211),
+    ("Bucharest","Giurgiu",90),
+    ("Giurgiu","Giurgiu",0),
+    ("Bucharest","Urziceni",85),
+    ("Urziceni","Urziceni",0),
+    ("Urziceni","Hirsova",98),
+    ("Urziceni","Vaslui",142),
+    ("Hirsova","Hirsova",0),
+    ("Hirsova","Eforie",86),
+    ("Eforie","Eforie",0),
+    ("Vaslui","Vaslui",0),
+    ("Vaslui","Iasi",92),
+    ("Iasi","Iasi",0),
+    ("Iasi","Neamt",87),
+    ("Neamt","Neamt",0)
+]
 
 # %%
 #Función para verificar si se cumple la condición de llegar a meta
@@ -37,131 +63,51 @@ def criterioAceptacion(posicion, meta):
   return posicion == meta
 
 # %%
-print(criterioAceptacion([3,3,1], [3,3,1]))
-print(criterioAceptacion([3,2,1], [2,2,0]))
-
-# El que realmente se usará
-print(criterioAceptacion(([3, 3, 1], [0, 0, 0]), ([3, 3, 1], [0, 0, 0])))
-print(criterioAceptacion(([0, 0, 0], [3, 3, 1]), ([3, 3, 1], [0, 0, 0])))
+print(criterioAceptacion(("Bucarest","Bucarest",0), ("Bucarest","Bucarest",0)))
+print(criterioAceptacion(("Arad","Sibiu",140), ("Bucarest","Bucarest",0)))
 
 # %% [markdown]
-# Para generar las soluciones del problema, tenemos las siguientes opciones: <br>
-# 1.- Restar 2 a misioneros, sólo si hay más de 1. <br>
-# 2.- Restar 2 a caníbales, sólo si hay más de 1. <br>
-# 3.- Restar 1 a misioneros y 1 a caníbales, sólo si hay más de 0 en ambos. <br>
-# 4.- Restar 1 a misioneros o 1 a caníbales, sólo si hay más de 0 en alguno de los dos. <br>
+# Para generar las soluciones, la función debe revisar el Punto B del nodo actual, y regresar los posibles nodos que contengan ese Punto B como Punto A, por ejemplo: <br>
+# 
+# Nodo: (A,B,n) <br>
+# ... <br>
+# Soluciones: <br>
+# (B,X,n) <br>
+# (B,Y,n) <br>
+# (B,Z,n) <br>
+# (B,B,0) <br>
+# 
+# En todos los casos, se omitiría la última solución a menos que sea la meta.
 
 # %%
 #Función que permite generar todas las posibles soluciones
 #En este caso genera todos los posibles movimientos del estado actual
-def generarSoluciones(ladoIzq, ladoDer):
+def generarSoluciones(actual, meta):
   soluciones = []
+  
   #Generar posibles soluciones
-
-  # Se restan 2 misioneros (perspectiva lado derecho).
-  m, c, b = ladoIzq[0] + 2, ladoIzq[1], ladoIzq[2]
-  m2, c2, b2 = ladoDer[0] - 2, ladoDer[1], ladoDer[2]
-  if m2 >= 0 and b2 == 1:
-    #print("a")
-    soluciones.append(([m,c,b+1],[m2,c2,b2-1]))
-  
-  # Se aumentan 2 misioneros.
-  m, c, b = ladoIzq[0] - 2, ladoIzq[1], ladoIzq[2]
-  m2, c2, b2 = ladoDer[0] + 2, ladoDer[1], ladoDer[2]
-  if m2 <= 3 and b2 == 0:
-    #print("b")
-    soluciones.append(([m,c,b-1],[m2,c2,b2+1]))
-  
-  # Se restan 2 caníbales.
-  m, c, b = ladoIzq[0], ladoIzq[1] + 2, ladoIzq[2]
-  m2, c2, b2 = ladoDer[0], ladoDer[1] - 2, ladoDer[2]
-  if c2 >= 0 and b2 == 1:
-    #print("c")
-    soluciones.append(([m,c,b+1],[m2,c2,b2-1]))
-
-  # Se aumentan 2 caníbales.
-  m, c, b = ladoIzq[0], ladoIzq[1] - 2, ladoIzq[2]
-  m2, c2, b2 = ladoDer[0], ladoDer[1] + 2, ladoDer[2]
-  if c2 <= 3 and b2 == 0:
-    #print("d")
-    soluciones.append(([m,c,b-1],[m2,c2,b2+1]))
-  
-  # Se resta 1 y 1.
-  m, c, b = ladoIzq[0] + 1, ladoIzq[1] + 1, ladoIzq[2]
-  m2, c2, b2 = ladoDer[0] - 1, ladoDer[1] - 1, ladoDer[2]
-  if (m2 >= 0 and c2 >= 0) and b2 == 1:
-    #print("e")
-    soluciones.append(([m,c,b+1],[m2,c2,b2-1]))
-  
-  # Se aumenta 1 y 1.
-  m, c, b = ladoIzq[0] - 1, ladoIzq[1] - 1, ladoIzq[2]
-  m2, c2, b2 = ladoDer[0] + 1, ladoDer[1] + 1, ladoDer[2]
-  if (m2 <= 3 and c2 <= 3) and b2 == 0:
-    #print("f")
-    soluciones.append(([m,c,b-1],[m2,c2,b2+1]))
-
-  # Se resta 1 a misioneros.
-  m, c, b = ladoIzq[0] + 1, ladoIzq[1], ladoIzq[2]
-  m2, c2, b2 = ladoDer[0] - 1, ladoDer[1], ladoDer[2]
-  if m2 >= 0 and b2 == 1:
-    #print("g")
-    soluciones.append(([m,c,b+1],[m2,c2,b2-1]))
-  
-  # Se aumenta 1 a misioneros.
-  m, c, b = ladoIzq[0] - 1, ladoIzq[1], ladoIzq[2]
-  m2, c2, b2 = ladoDer[0] + 1, ladoDer[1], ladoDer[2]
-  if m2 <= 3 and b2 == 0:
-    #print("h")
-    soluciones.append(([m,c,b-1],[m2,c2,b2+1]))
-
-  # Se resta 1 a caníbales.
-  m, c, b = ladoIzq[0], ladoIzq[1] + 1, ladoIzq[2]
-  m2, c2, b2 = ladoDer[0], ladoDer[1] - 1, ladoDer[2]
-  if c2 >= 0 and b2 == 1:
-    #print("i")
-    soluciones.append(([m,c,b+1],[m2,c2,b2-1]))
-  
-  # Se aumenta 1 a caníbales.
-  m, c, b = ladoIzq[0], ladoIzq[1] - 1, ladoIzq[2]
-  m2, c2, b2 = ladoDer[0], ladoDer[1] + 1, ladoDer[2]
-  if c2 <= 3 and b2 == 0:
-    #print("j")
-    soluciones.append(([m,c,b-1],[m2,c2,b2+1]))
-  
+  for nodo in ciudades:
+    if nodo[0] == actual[1] and nodo == meta:
+      soluciones.append(nodo)
+    elif nodo[0] == actual[1] and nodo[0] != nodo[1]:
+      soluciones.append(nodo)
   return soluciones
 
 # %%
-generarSoluciones([1, 0, 1], [2, 3, 0])
+generarSoluciones(("Arad","Zerind",75), ("Bucharest","Bucharest",0))
 
 # %%
-def validar(ladoIzq, ladoDer, visitados):
-    # Si visitados no está vacía, el bote podría haberse movido.
-    if (len(visitados) != 0):
-        # Verificar que el último nodo de visitados no tenga el bote en el mismo lado que el nodo actual.
-        if (ladoIzq[2] != visitados[-1][0][2]):
-            # Validar que en el nodo no haya más caníbales que misioneros en cualquiera de los lados.
-            return ((ladoIzq[0] >= ladoIzq[1] or ladoIzq[0] == 0) and (ladoDer[0] >= ladoDer[1] or ladoDer[0] == 0))
-        else:
-            return False
-    # Si está vacía, el bote siempre estará a la derecha.
-    else:
+def validar(actual, visitados):
+    #print("validar actual: {}".format(actual))
+    #print("validar visitados: {}".format(visitados))
+    if len(visitados) == 0:
         return True
+    else:
+        if visitados[-1][1] == actual[0]:
+            return True
 
 # %%
-validar([1, 1, 1], [2, 2, 0],[])
-
-# %%
-def imprimir_tablero(recorrido):
-    for estado in recorrido:
-        izquierda, derecha = estado
-        misioneros_izq, canibales_izq, barco_izq = izquierda
-        misioneros_der, canibales_der, barco_der = derecha
-        
-        # Representación visual
-        print("Izquierda:  " + "M: " + str(misioneros_izq) + " C: " + str(canibales_izq) + " B: " + str(barco_izq))
-        print("Barco       " + ("<--" if barco_izq else "-->"))
-        print("Derecha:    " + "M: " + str(misioneros_der) + " C: " + str(canibales_der) + " B: " + str(barco_der))
-        print('-' * 40)
+validar(("Zerind","Oradea",71),[("Arad", "Zerind", 75)])
 
 # %%
 #Implementación del algoritmo de búsqueda BFS
@@ -177,7 +123,8 @@ def BFS(frontera_act, visitados, solucion, meta, n_iteraciones):
   #Si el elemento no ha sido anteriormente visitado o generado,
   #entonces no se generan más soluciones, para evitar enciclarse
   # y también valida el nodo actual usando las reglas de juego.
-  if cabeza not in visitados and validar(cabeza[0], cabeza[1], visitados):
+  if cabeza not in visitados and validar(cabeza, visitados):
+    #print("entró: {}".format(cabeza))
   #if cabeza not in visitados:
     #Se agrega el elemento a la lista de soluciones, es decir el camino recorrido hasta ahora
     solucion.append(cabeza)
@@ -190,7 +137,7 @@ def BFS(frontera_act, visitados, solucion, meta, n_iteraciones):
     print("Recorriendo, actualmente en: {}".format(cabeza))
     visitados.append(cabeza)
     #Se generan las nuevas posibilidades a partir de la posición actual
-    nuevas_soluciones = generarSoluciones(cabeza[0], cabeza[1])
+    nuevas_soluciones = generarSoluciones(cabeza, meta)
     print("Nuevas soluciones: {}".format(nuevas_soluciones))
     #Se agregan los elementos nuevos al final de la lista para simular una cola
     frontera = frontera + nuevas_soluciones
@@ -200,13 +147,12 @@ def BFS(frontera_act, visitados, solucion, meta, n_iteraciones):
 # %%
 #Función que utiliza todos las funciones creadas para hacer la simulación
 def play_bfs():
-  inicio = ([0,0,0], [3,3,1])
-  meta = ([3,3,1], [0,0,0])
+  inicio = ("Arad","Arad",0)
+  meta = ("Bucharest","Bucharest",0)
   visitados, solucion = [], []
   solBFS = BFS([inicio], visitados, solucion, meta, 0)
   print("Cantidad recorrida con BFS: {}".format(len(solBFS)))
   print("Recorrido: {}".format(solBFS))
-  imprimir_tablero(solBFS)
   if len(solBFS) == 0:
     print("No se encontro solucion")
     return
@@ -228,7 +174,7 @@ def DFS(frontera_act, visitados, solucion, meta, n_iteraciones):
   #Si el elemento no ha sido anteriormente visitado o generado,
   #entonces no se generan más soluciones, para evitar enciclarse
   # y también valida el nodo actual usando las reglas de juego.
-  if cabeza not in visitados and validar(cabeza[0], cabeza[1], visitados):
+  if cabeza not in visitados and validar(cabeza, visitados):
   #if cabeza not in visitados:
     #Se agrega el elemento a la lista de soluciones, es decir el camino recorrido hasta ahora
     solucion.append(cabeza)
@@ -241,7 +187,7 @@ def DFS(frontera_act, visitados, solucion, meta, n_iteraciones):
     print("Recorriendo, actualmente en: {}".format(cabeza))
     visitados.append(cabeza)
     #Se generan las nuevas posibilidades a partir de la posición actual
-    nuevas_soluciones = generarSoluciones(cabeza[0], cabeza[1])
+    nuevas_soluciones = generarSoluciones(cabeza, meta)
     print("Nuevas soluciones: {}".format(nuevas_soluciones))
     #Se agregan los elementos nuevos al inicio de la lista para simular una pila
     frontera = nuevas_soluciones + frontera
@@ -251,13 +197,12 @@ def DFS(frontera_act, visitados, solucion, meta, n_iteraciones):
 # %%
 #Función que utiliza todos las funciones creadas para hacer la simulación
 def play_dfs():
-  inicio = ([0,0,0], [3,3,1])
-  meta = ([3,3,1], [0,0,0])
+  inicio = ("Arad","Arad",0)
+  meta = ("Bucharest","Bucharest",0)
   visitados, solucion = [], []
   solDFS = DFS([inicio], visitados, solucion, meta, 0)
   print("Cantidad recorrida con DFS: {}".format(len(solDFS)))
   print("Recorrido: {}".format(solDFS))
-  imprimir_tablero(solDFS)
   if len(solDFS) == 0:
     print("No se encontro solucion")
     return
@@ -277,7 +222,7 @@ def profundidad(inicio, actual):
 
 # %%
 #profundidad((2,2), (4,1))
-profundidad((([0,0,0], [3,3,1]),1), (([0,0,0], [3,3,1]),3))
+profundidad((("Arad","Arad",0),1), (('Arad', 'Zerind', 75),3))
 
 # %%
 #Función DFS limitada a un valor de profundidad
@@ -293,7 +238,7 @@ def LDFS(frontera_act, visitados, solucion, meta, n_iteraciones, inicio, limite)
   #Si el elemento no ha sido anteriormente visitado o generado,
   #entonces no se generan más soluciones, para evitar enciclarse
   # y también valida el nodo actual usando las reglas de juego.
-  if cabeza[0] not in visitados and validar(cabeza[0][0], cabeza[0][1], visitados):
+  if cabeza[0] not in visitados and validar(cabeza[0], visitados):
   #if cabeza not in visitados:
     #Se agrega el elemento a la lista de soluciones, es decir el camino recorrido hasta ahora
     solucion.append(cabeza[0])
@@ -308,7 +253,7 @@ def LDFS(frontera_act, visitados, solucion, meta, n_iteraciones, inicio, limite)
     #Se establece una condición sobre si la generación de profundidad de las posibilidades es menor al limite establecido
     if profundidad(inicio, cabeza) <= limite:
       #Se generan las nuevas posibilidades a partir de la posición actual
-      nuevas_soluciones = generarSoluciones(cabeza[0][0], cabeza[0][1])
+      nuevas_soluciones = generarSoluciones(cabeza[0], meta)
       nuevas_soluciones_nivel = []
       for sol in nuevas_soluciones:
         nuevas_soluciones_nivel.append((sol, cabeza[1] + 1))
@@ -321,15 +266,14 @@ def LDFS(frontera_act, visitados, solucion, meta, n_iteraciones, inicio, limite)
 #Función que utiliza todos las funciones creadas para hacer la simulación
 def play_ldfs():
   # Se establece un limite para evitar que recorra todo el espacio de soluciones
-  limite = 9
-  inicio = ([0,0,0], [3,3,1])
-  meta = ([3,3,1], [0,0,0])
+  limite = 4
+  inicio = ("Arad","Arad",0)
+  meta = ("Bucharest","Bucharest",0)
   visitados, solucion = [], []
   solLDFS = LDFS([(inicio,0)], visitados, solucion, meta, 0, (inicio, 0), limite)
   print("Cantidad recorrida con LDFS: {}".format(len(solLDFS)))
   # El recorrido no se imprimirá si no llega a la solución, pero se puede ver mientras recorre nodos.
   print("Recorrido: {}".format(solLDFS))
-  imprimir_tablero(solLDFS)
   if len(solLDFS) == 0:
     print("No se encontro solucion")
     return
@@ -366,13 +310,12 @@ def ILDFS(frontera, limite_inicial, inicio, meta, n_iteraciones):
 #Función que utiliza todos las funciones creadas para hacer la simulación
 def play_ildfs():
   limite = 1
-  inicio = ([0,0,0], [3,3,1])
-  meta = ([3,3,1], [0,0,0])
+  inicio = ("Arad","Arad",0)
+  meta = ("Bucharest","Bucharest",0)
   solILDFS = ILDFS([(inicio,0)], limite, inicio, meta, 0)
   print("Cantidad recorrida con ILDFS: {}".format(len(solILDFS)))
   # El recorrido no se imprimirá si no llega a la solución, pero se puede ver mientras recorre nodos.
   print("Recorrido: {}".format(solILDFS))
-  imprimir_tablero(solILDFS)
   if len(solILDFS) == 0:
     print("No se encontro solucion")
     return
@@ -381,21 +324,16 @@ def play_ildfs():
 #play_ildfs()
 
 # %%
-def heuristica(ladoIzq):
-    m, c, _ = ladoIzq
-    return m + c
-
-# %%
-def evaluacionVoraz(posibilidades, visitados):
-    best_val = 100000
-    best = None
-    for posible in posibilidades:
-        if posible not in visitados:
-            val = heuristica(posible[0])
-            if val < best_val:
-                best = posible
-                best_val = val
-    return best
+def evaluacionVoraz(posibilidades):
+  best_val = 100000
+  best = None
+  for posible in posibilidades:
+    #val = distanciaEuclidiana(posible, meta)
+    val = posible[2]
+    if val < best_val:
+      best = posible
+      best_val = val
+  return best
 
 # %%
 def eliminaPosibilidadeIguales(posibilidades, lista):
@@ -418,26 +356,25 @@ def voraz(nodo, visitados, solucion, meta, n_iteraciones):
     print("Número de iteraciones: {}".format(n_iteraciones))
     return solucion
   print("nodo: {}".format(nodo))
-  nuevas_soluciones = generarSoluciones(nodo[0], nodo[1])
+  nuevas_soluciones = generarSoluciones(nodo, meta)
   print("Nuevas soluciones: {}".format(nuevas_soluciones))
   #print(nuevas_soluciones)
   nuevas_soluciones = eliminaPosibilidadeIguales(nuevas_soluciones, visitados)
   #print(nuevas_soluciones)
-  mejor = evaluacionVoraz(nuevas_soluciones, visitados)
+  mejor = evaluacionVoraz(nuevas_soluciones)
   #print(mejor)
   visitados.append(nodo)
   return voraz(mejor, visitados, solucion, meta, n_iteraciones)
 
 # %%
 def play_voraz():
-  inicio = ([0,0,0], [3,3,1])
-  meta = ([3,3,1], [0,0,0])
+  inicio = ("Arad","Arad",0)
+  meta = ("Bucharest","Bucharest",0)
   visitados, solucion = [], []
   solVoraz = voraz(inicio, visitados, solucion, meta, 0)
   print("Cantidad recorrida con voraz: {}".format(len(solVoraz)))
   # El recorrido no se imprimirá si no llega a la solución, pero se puede ver mientras recorre nodos.
   print("Recorrido: {}".format(solVoraz))
-  imprimir_tablero(solVoraz)
   if len(solVoraz) == 0:
     print("No se encontro solucion")
     return
@@ -446,13 +383,43 @@ def play_voraz():
 #play_voraz()
 
 # %%
+distancias=[
+    ("Arad", 366),
+    ("Zerind", 374),
+    ("Oradea", 380),
+    ("Timisoara", 329),
+    ("Lugoj", 244),
+    ("Mehadia", 241),
+    ("Drobeta", 242),
+    ("Sibiu", 253),
+    ("Rimnicu Vilcea", 193),
+    ("Craiova", 160),
+    ("Fagaras", 176),
+    ("Pitesti", 100),
+    ("Bucharest", 0),
+    ("Giurgiu", 77),
+    ("Urziceni", 80),
+    ("Hirsova", 151),
+    ("Eforie", 161),
+    ("Neamt", 234),
+    ("Iasi", 226),
+    ("Vaslui", 199)
+]
+
+# %%
+def getDistancia(ciudad):
+    for capital in distancias:
+        if capital[0] == ciudad:
+            return capital[1]
+
+# %%
 #Función que evalua cada posibilidad y ordena la lista de menor a mayor en este caso.
 def evaluacion_aStar(posibilidades, visitados):
   evaluaciones = []
   for posible in posibilidades:
     if posible not in visitados:
         #Se suma g(n) + h(n)
-        valor = posible[1] + heuristica(posible[0][0])
+        valor = getDistancia(posible[0][0]) + posible[0][2]
         evaluaciones.append([posible, valor])
   #print(evaluaciones)
   def second_value(elemento):
@@ -475,7 +442,7 @@ def AStar(frontera_act, visitados, solucion, meta, n_iteraciones):
   if criterioAceptacion(nodo[0], meta):
     return solucion
   print("Nod", nodo[0])
-  nuevas_soluciones = generarSoluciones(nodo[0][0], nodo[0][1])
+  nuevas_soluciones = generarSoluciones(nodo[0], meta)
   print("Sol",nuevas_soluciones)
   nuevas_soluciones = eliminaPosibilidadeIguales(nuevas_soluciones, visitados)
   print("No obs", nuevas_soluciones)
@@ -491,15 +458,15 @@ def AStar(frontera_act, visitados, solucion, meta, n_iteraciones):
 
 # %%
 def play_AStar():
-  inicio = ([0,0,0], [3,3,1])
-  meta = ([3,3,1], [0,0,0])
+  inicio = ("Arad","Arad",0)
+  meta = ("Bucharest","Bucharest",0)
   inicio = (inicio, 0)
   visitados, solucion = [], []
   solAStar = AStar([inicio], visitados, solucion, meta, 0)
   print("Cantidad recorrida con AStar: {}".format(len(solAStar)))
   # El recorrido no se imprimirá si no llega a la solución, pero se puede ver mientras recorre nodos.
   print("Recorrido: {}".format(solAStar))
-  imprimir_tablero(solAStar)
+  #imprimir_tablero(solAStar)
   if len(solAStar) == 0:
     print("No se encontro solucion")
     return
@@ -510,7 +477,7 @@ def play_AStar():
 # %%
 def menu():
     while True:
-        print("\nMisioneros y Caníbales")
+        print("\nProblema del viajero")
         print("\nSeleccione un algoritmo:")
         print("1. BFS")
         print("2. DFS")
